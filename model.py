@@ -37,9 +37,10 @@ TIER_PRIOR = {
     "platinum": 0.003,
 }
 STORY_PRIOR = 0.014          # a bronze story/chapter trophy
-TAU_HOURS = 30.0             # saturation time of the rate's climb
-MAX_SHIFT = 1.20             # caps the total logit move a single case may take
+TAU_HOURS = 60.0             # saturation time of the rate's climb
+MAX_SHIFT = 1.35             # caps the total logit move a single case may take
 MIN_SLOPE, MAX_SLOPE = -0.002, 0.030
+SPREAD_BASE, SPREAD_GROWTH = 0.30, 0.75
 
 
 def clamp(x, lo, hi):
@@ -140,9 +141,9 @@ def forecast_row(trophy, index, snaps, t0, target_hours):
         # small sample.  On launch night the next refresh lands on a far bigger
         # tracked population than the page currently reports.
         if last_h < 6.0:
-            shift = -1.25 + 0.012 * dt
+            shift = -1.45 + 0.012 * dt
         elif last_h < 30.0:
-            shift = -0.45 + 0.004 * dt
+            shift = -0.50 + 0.004 * dt
         else:
             shift = -0.10 + 0.002 * dt
         shift = clamp(shift, -1.6, 0.6)
@@ -165,7 +166,7 @@ def forecast_row(trophy, index, snaps, t0, target_hours):
         slope = (1.0 - weight) * prior + weight * slope
         damp = 1.0 - math.exp(-dt / TAU_HOURS)
         shift = clamp(slope * TAU_HOURS * damp, -MAX_SHIFT, MAX_SHIFT)
-        spread = math.sqrt(0.30 ** 2 + (0.85 * damp) ** 2)
+        spread = math.sqrt(SPREAD_BASE ** 2 + (SPREAD_GROWTH * damp) ** 2)
         if len(window) >= 4:
             spread += min(0.35, 0.5 * resid)
         if last_earned < 15.0:
